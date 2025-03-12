@@ -1,5 +1,6 @@
 package co.kshrd.ticketapi.model;
 
+import co.kshrd.ticketapi.model.dto.TicketsStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,6 @@ public class Ticket {
     private String destinationStation;
     private double ticketPrice;
     private boolean paymentStatus;
-    private String ticketStatus;
+    private TicketsStatus ticketStatus;
     private String seatNUmber;
 }

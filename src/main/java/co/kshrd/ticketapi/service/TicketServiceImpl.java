@@ -4,12 +4,12 @@ import co.kshrd.ticketapi.model.dto.ApiRespone;
 import co.kshrd.ticketapi.model.Ticket;
 import co.kshrd.ticketapi.model.dto.TicketRequestDto;
 import co.kshrd.ticketapi.model.dto.TicketsStatus;
+import co.kshrd.ticketapi.model.dto.UpdateRequestDto;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -21,10 +21,10 @@ public class TicketServiceImpl implements TicketService {
     List<Ticket> tickets = new ArrayList<>();
 
     public TicketServiceImpl() {
-        tickets.add(new Ticket(1, "John Doe", "2025-03-15", "New York", "Los Angeles", 150.5, true, TicketsStatus.COMPLETED.name(), "A1"));
-        tickets.add(new Ticket(2, "Jane Smith", "2025-03-16", "Chicago", "San Francisco", 200.0, false, TicketsStatus.COMPLETED.name(), "B2"));
-        tickets.add(new Ticket(3, "Alice Brown", "2025-03-17", "Boston", "Miami", 180.75, true, TicketsStatus.BOOKED.name(), "C3"));
-        tickets.add(new Ticket(3, "Alice Brown", "2025-03-17", "Boston", "Miami", 180.75, true, TicketsStatus.CANCELLED.name(), "C3"));
+        tickets.add(new Ticket(1, "John Doe", "2025-03-15", "New York", "Los Angeles", 150.5, true, TicketsStatus.COMPLETED, "A1"));
+        tickets.add(new Ticket(2, "Jane Smith", "2025-03-16", "Chicago", "San Francisco", 200.0, false, TicketsStatus.COMPLETED, "B2"));
+        tickets.add(new Ticket(3, "Alice Brown", "2025-03-17", "Boston", "Miami", 180.75, true, TicketsStatus.BOOKED, "C3"));
+        tickets.add(new Ticket(3, "Alice Brown", "2025-03-17", "Boston", "Miami", 180.75, true, TicketsStatus.CANCELLED, "C3"));
     }
 
 
@@ -52,7 +52,7 @@ public class TicketServiceImpl implements TicketService {
                     ticketRequestDto.getDestinationStation(),
                     ticketRequestDto.getTicketPrice(),
                     ticketRequestDto.isPaymentStatus(),
-                    ticketRequestDto.getTicketStatus().name(),
+                    ticketRequestDto.getTicketStatus(),
                     ticketRequestDto.getSeatNumber()
             );
             tickets.add(ticket);
@@ -94,7 +94,7 @@ public class TicketServiceImpl implements TicketService {
             ticketToUpdate.setDestinationStation(ticketRequestDto.getDestinationStation());
             ticketToUpdate.setTicketPrice(ticketRequestDto.getTicketPrice());
             ticketToUpdate.setPaymentStatus(ticketRequestDto.isPaymentStatus());
-            ticketToUpdate.setTicketStatus(ticketRequestDto.getTicketStatus().name().toLowerCase());
+            ticketToUpdate.setTicketStatus(ticketRequestDto.getTicketStatus());
             ticketToUpdate.setSeatNUmber(ticketRequestDto.getSeatNumber());
 
 
@@ -187,7 +187,7 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public ResponseEntity<ApiRespone<List<Ticket>>> filterByTicketStatusAndTravelDate(
-            String ticketStatus, String travelDate) {
+            TicketsStatus ticketStatus, String travelDate) {
 
         List<Ticket> filteredTickets = new ArrayList<>();
 
@@ -214,6 +214,74 @@ public class TicketServiceImpl implements TicketService {
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
 
+    }
+
+    @Override
+    public ResponseEntity<ApiRespone<List<Ticket>>> createTicketByBulk(List<TicketRequestDto> ticketRequestDtoList) {
+        ApiRespone<List<Ticket>> response = new ApiRespone<>();
+        List<Ticket> createdTickets = new ArrayList<>();
+
+        if (ticketRequestDtoList == null || ticketRequestDtoList.isEmpty()) {
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+
+        for (TicketRequestDto dto : ticketRequestDtoList) {
+            if (dto.getTicketPrice() > 0) {
+                Ticket ticket = new Ticket(
+                        tickets.size() + 1,
+                        dto.getPassengerName(),
+                        dto.getTravelDate(),
+                        dto.getSourceStation(),
+                        dto.getDestinationStation(),
+                        dto.getTicketPrice(),
+                        dto.isPaymentStatus(),
+                        dto.getTicketStatus(),
+                        dto.getSeatNumber()
+                );
+                tickets.add(ticket);
+                createdTickets.add(ticket);
+            }
+        }
+
+        if (createdTickets.isEmpty()) {
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+
+        response = new ApiRespone<>(
+                true,
+                "Tickets created successfully",
+                "CREATED",
+                createdTickets,
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @Override
+    public ResponseEntity<ApiRespone<List<Ticket>>> updateTicketStatusAndMultipleId(UpdateRequestDto updateRequestDto) {
+        ApiRespone<List<Ticket>> response = new ApiRespone<>();
+        List<Ticket> ticketsToUpdate = tickets.stream()
+                .filter(ticket -> updateRequestDto.getId().contains(ticket.getTicketId()))
+                .collect(Collectors.toList());
+
+        if (ticketsToUpdate.isEmpty()) {
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+
+        for (Ticket ticket : ticketsToUpdate) {
+            ticket.setPaymentStatus(updateRequestDto.isPaymentStatus());
+        }
+
+        response = new ApiRespone<>(
+                true,
+                "Tickets updated successfully",
+                "UPDATED",
+                ticketsToUpdate,
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 }
