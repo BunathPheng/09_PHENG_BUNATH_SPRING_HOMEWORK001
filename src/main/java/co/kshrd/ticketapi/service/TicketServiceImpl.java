@@ -5,7 +5,6 @@ import co.kshrd.ticketapi.model.Ticket;
 import co.kshrd.ticketapi.model.dto.TicketRequestDto;
 import co.kshrd.ticketapi.model.dto.TicketsStatus;
 import co.kshrd.ticketapi.model.dto.UpdateRequestDto;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -257,7 +256,6 @@ public class TicketServiceImpl implements TicketService {
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
-
     @Override
     public ResponseEntity<ApiRespone<List<Ticket>>> updateTicketStatusAndMultipleId(UpdateRequestDto updateRequestDto) {
         ApiRespone<List<Ticket>> response = new ApiRespone<>();
@@ -283,5 +281,10 @@ public class TicketServiceImpl implements TicketService {
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
+    public List<Ticket> getTicketsWithPagination(int page, int size) {
+        return tickets.stream()
+                .skip(page)
+                .limit(size)
+                .collect(Collectors.toList());
+    }
 }

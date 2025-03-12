@@ -24,4 +24,5 @@ public interface TicketService {
             String travelDate);
     ResponseEntity<ApiRespone<List<Ticket>>> createTicketByBulk(List<TicketRequestDto> ticketRequestDto);
     ResponseEntity<ApiRespone<List<Ticket>>> updateTicketStatusAndMultipleId(UpdateRequestDto ticketRequestDto);
+    List<Ticket> getTicketsWithPagination(int offset, int limit);
 }

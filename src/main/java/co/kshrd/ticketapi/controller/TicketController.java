@@ -19,11 +19,14 @@ public class TicketController {
      public TicketController(TicketService ticketService) {
          this.ticketService = ticketService;
      }
-     @GetMapping
-     @Operation(summary = "Get all tickets")
-     public ResponseEntity<ApiRespone<List<Ticket>>> getTicket() {
-         return ticketService.getAllTickets();
-     }
+    @GetMapping
+    @Operation(summary = "Get all tickets with pagination")
+    public ResponseEntity<List<Ticket>> getTickets(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "3") int size) {
+        List<Ticket> tickets = ticketService.getTicketsWithPagination(page, size);
+        return ResponseEntity.ok(tickets);
+    }
      @PostMapping
      @Operation(summary = "Create new tickets")
      public ResponseEntity<ApiRespone<Ticket>> createTicket(@RequestBody TicketRequestDto ticketRequestDto) {
