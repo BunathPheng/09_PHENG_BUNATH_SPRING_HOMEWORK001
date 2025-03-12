@@ -282,8 +282,14 @@ public class TicketServiceImpl implements TicketService {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
     public List<Ticket> getTicketsWithPagination(int page, int size) {
+        if (page < 0) {
+            return null;
+        }
+        if (size <= 0) {
+            return null;
+        }
         return tickets.stream()
-                .skip(page)
+                .skip((long) page * size)
                 .limit(size)
                 .collect(Collectors.toList());
     }
